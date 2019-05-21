@@ -1,0 +1,12 @@
+{% extends "blog/blog_list.html" %}
+
+{% block title %}
+    {{ blog_type.type_name}}
+{% endblock %}
+
+
+
+{% block blog_list_title %}
+Classified by date:{{ blogs_with_date}}(the total number of blogs is {{ page_of_blogs.paginator.count }})
+<a href="{% url 'blog_list' %}">See The All Blogs</a>
+{% endblock %}

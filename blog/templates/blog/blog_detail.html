@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {{ blog.title }}
+{% endblock %}
+{% block nav_blog_active %}
+    active
+{% endblock %}
+
+{% load staticfiles %}
+{% block header_extends %}
+    <link rel="stylesheet" type="text/css" href="{% static 'blog/blog.css' %}">
+    <script type="text/javascript" src="{% static "ckeditor/ckeditor-init.js" %}"></script>
+    <script type="text/javascript" src="{% static "ckeditor/ckeditor/ckeditor.js" %}"></script>
+{% endblock %}
+
+
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-10 col-xs-offset-1">
+                <h3>{{ blog.title }}</h3>
+                    <ul class="blog-info-description">
+                        <li>author: {{ blog.author }}</li>
+                        <li>public date: {{ blog.created_time }}</li>
+                        <li>classify:
+                            <a href="{% url 'blogs_with_type' blog.blog_type.pk %}">
+                                {{ blog.blog_type }}
+                            </a> 
+                        </li> 
+                        <li>read_num:{{ blog.get_read_num }}</li>
+                    </ul> 
+                <div class= "blog-content" >{{ blog.content | safe }}</div>
+                <div class="blog-more">
+                    <p>
+                        {% if previous_blog %}
+                            <a href="{% url 'blog_detail' previous_blog.pk %}">
+                                the previous page:{{ previous_blog.title }}
+                            </a>
+                        {% else %}
+                            isNull
+                        {% endif %}
+                    </p>
+                    <p>
+                        {% if next_blog %}
+                            <a href="{% url 'blog_detail' next_blog.pk %}">
+                                the next page:{{ next_blog.title }}
+                            </a>
+                        {% else %}
+                            isNull
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+                    <div class="col-xs-10 col-xs-offset-1">
+                        <div class = "comment-area" >
+                            <h3 class = "comment-area-title" >submit comment</h3>
+                            {{ user.is_authenticated }}
+                            {% if user.is_authenticated %}
+                               signed
+                               <!--  #前端的部分功能可以用後端來實現 -->
+                                <form id=comment_form action="{% url 'update_comment'%}" method = "POST" style="overflow: hidden">
+                                   
+                                   <label >{{ user.username }}, welcom to comment</label>
+                                   <div id="reply_cmment_container" style="display:none;">
+                                        <p>REPLY:</p>
+                                        <div id="reply_content"></div>
+                                   </div>
+                                   {% csrf_token %}
+                                   <!-- {{ comment_form }} -->
+                                   <!-- 去掉上一句的标签 -->
+                                   {% for field in comment_form %}
+                                        {{field}}
+                                   {% endfor %}
+                                   <span id="comment_error" class="text-danger pull-left"></span>
+                                   <input type="submit" value="submit_comment" class="btn btn-primary pull-right">
+                                </form>
+                               <!--  #前端的部分功能可以用後端來實現 -->
+                               <!-- <form action="{% url 'update_comment'%}" method = "POST" style="overflow: hidden">
+                                   {% csrf_token %}
+                                    {{ comment_form }}
+                                   <div class="form-group">
+                                       <label for="comment_text">{{ user.username }}, welcom to comment</label>
+                                       <textarea id="comment_text" class="form-control" name="text" rows="4"></textarea>
+                                   </div>
+                                   
+                                   <input type="hidden" name="object_id" value="{{ blog.pk }}">
+                                   <input type="hidden" name="content_type" value="blog">
+                                   <input type="submit" value="submit_comment" class="btn btn-primary" style="float:right">   
+                               </form> -->
+                            {% else %}
+                                unsigned
+                                <!-- <form action="{% url 'login' %}" method="POST">
+                                    {% csrf_token %}
+                                    <input type="text" name="username">
+                                    <input type="text" name="password">
+                                    <input type="submit" value="SignUp">
+                                </form> -->
+                                <a class="btn btn-primary" href="{% url 'login' %}?from={{ request.get_full_path }}">LOGIN</a>
+                                <span>or</span>
+                                <a class="btn btn-danger" href="{% url 'register' %}?from={{ request.get_full_path }}">REGISTER</a>
+                            {% endif %}
+                        </div>
+                        <div class = "comment-area" >
+                            <h3 class = "comment-area-content" >comment area</h3>
+                            <div id = "comment_list">
+                                {% for comment in comments %}
+                                    <div class="comment">
+                                        <span>{{ comment.user.username }}</span>
+                                        <span>({{ comment.comment_time }}):</span>
+                                        <div id="comment_{{ comment.pk }}">
+                                            {{ comment.text | safe }}
+                                        </div>
+                                        <a href="javascript:reply({{ comment.pk }});">REPLY</a>
+
+                                        {% for reply in comment.root_comment.all %}
+                                            <div class="reply">
+                                                <span>{{ reply.user.username }}</span>
+                                                <span>({{ reply.comment_time }}):
+                                                reply</span>
+                                                {{ reply.reply_to.username }}:
+                                                <div id="comment_{{ reply.pk }}">
+                                                    {{ reply.text | safe }}
+                                                </div>
+                                                <a href="javascript:reply({{ reply.pk }});">REPLY</a>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% empty %}
+                                    <span class="no_comment">isNull</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div> 
+                </div>
+            </div>
+{% endblock %}
+
+{% block script_extends %}
+    <script type="text/javascript">
+        $("#comment_form").submit(function(){
+            CKEDITOR.instances["id_text"].updateElement()
+            $.ajax({
+                url:"{% url 'update_comment' %}",
+                type:"POST",
+                data:$(this).serialize(),
+                // 等同于data:$("#comment_form").serialize(),
+                cache:false,
+                success:function(data){
+                    console.log(data);
+                    data = eval(data);
+                    if(data["status"] == "SUCCESS")
+                    {
+
+                        var comment_html = '<div class="comment"><span>'+ data["username"] +'</span><span>('+ data["comment_time"] +'):</span><div id="comment_'+ data['pk'] + '"> '+  data["text"] +'</div><a href="javascript:reply('+ data['pk'] + ');">REPLY</a></div>'
+                        $("#comment_list").prepend(comment_html);
+
+                        if($('#reply_comment_id').val() == '0'){
+
+                        }else{
+
+                        }
+                        
+                        CKEDITOR.instances["id_text"].setData('');
+                    }
+                    else
+                    {
+                        $("#comment_error").text(data['message']);
+                    }
+                },
+                error:function(xhr){
+                    console.log(xhr);
+                },
+            });
+            return false;
+            // return false作用是阻止点完按钮的提交操作
+        });
+        function reply(reply_comment_id){
+            $('#reply_comment_id').val(reply_comment_id);
+            var html = $("#comment_" + reply_comment_id).html();
+            $("#reply_content").html(html);
+            $("#reply_content_container").show();
+
+            $('html').animate({scrollTop:$("#comment_form").offset().top - 60}, 300, function(){
+                CKEDITOR.instances["id_text"].focus();
+            });
+
+        }
+    </script>
+{% endblock %}

@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+    My WebSite
+{% endblock %}
+
+{% load staticfiles %}
+{% block header_extends %}
+    <link rel="stylesheet" type="text/css" href="{% static 'blog/blog.css' %}">
+{% endblock %}
+
+{% block nav_blog_active %}active{% endblock %}
+
+
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12 col-sm-8 col-md-10">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        {% block blog_list_title %}
+                        Blog list(the total number of blogs is {{ page_of_blogs.paginator.count }})
+                        {% endblock %}
+                    </div>
+                    <div class= "panel-body">
+                        {% for blog in page_of_blogs.object_list %}
+                            <div class = "blog">
+                                <h3><a href="/blog/{{ blog.pk }}">{{ blog.title }}</a></h3>
+                                <p class="blog-info">
+                                    Type:<a href="{% url 'blogs_with_type' blog.blog_type.pk %}">{{ blog.blog_type }}</a>
+                                    &nbsp;&nbsp;
+                                    Date:{{ blog.created_time }}&nbsp;&nbsp;&nbsp;
+                                    Read_Num:({{ blog.get_read_num }})&nbsp;&nbsp;
+                                </p>
+                                <p>{{ blog.content| striptags |truncatechars:120 }}</p>
+                            </div>
+                        {% empty %}
+                            <div class="blog">
+                                <h3>---it's null please waite---</h3>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div>
+                    <div aria-label="Page navigation">
+                        <ul class="pagination">
+                            <li>
+                                {% if page_of_blogs.has_previous %}
+                                    <a href="?page={{ page_of_blogs.previous_page_number }}" aria-label="Previous">
+                                      <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                {% else %}
+                                    <span aria-hidden="true">&laquo;</span>
+                                {% endif %}
+                            </li>
+
+                          
+                            {% for page_num in page_range %}
+                                {% if page_num == page_of_blogs.number %}
+                                    <li class="active">
+                                            <span>{{ page_num }}</span>
+                                    </li>
+                                {% elif page_num == "..." %}
+                                    <li>
+                                            <span>{{ page_num }}</span>
+                                    </li>
+                                {% else %}
+                                    <li>
+                                        <a href="?page={{ page_num }}">
+                                            {{ page_num }}
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            <!-- {% for page_num in page_of_blogs.paginator.page_range%}
+                                {% if page_num == page_of_blogs.number %}
+                                    <li class="active">
+                                            <span>{{ page_num }}</span>
+                                    </li>
+                                {% else %}
+                                    <li>
+                                        <a href="?page={{ page_num }}">
+                                            {{ page_num }}
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %} -->
+
+                            <li>
+                                {% if page_of_blogs.has_next %}
+                                    <a href="?page={{ page_of_blogs.next_page_number }}" aria-label="Previous">
+                                      <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                {% else %}
+                                    <span aria-hidden="true">&raquo;</span>
+                                {% endif %}
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+     <!-- <p>the total number of blogs is {{ blogs|length }}</p> -->
+                    
+            <div class="hidden-xs col-sm-4 col-md-2">
+                <div class="panel panel-default">
+                  <div class="panel-heading">Blog Classified</div>
+                  <div class="panel-body">
+                    <ul class = "blog-types">
+                        {% for blog_type in blog_types %}
+                            <li>
+                                <a href="{% url 'blogs_with_type' blog_type.pk %}">
+                                    {{ blog_type.type_name}}({{ blog_type.blog_count }})
+                                </a>
+                            </li>
+                        {% empty %}
+                            <<li> IsNull </li>
+                        {% endfor%}
+                    </ul>
+                  </div>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading">Date Classified</div>
+                    <div class="panel-body">
+                        <ul>
+                            {% for blog_date,blog_count in blog_dates.items %}
+                                <li>
+                                    <a href="{% url 'blogs_with_date' blog_date.year blog_date.month%}">
+                                        {{ blog_date }}({{blog_count}})
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+
+
+                <!-- <h4>Blog Classified</h4>
+                <ul>
+                    {% for blog_type in blog_types %}
+                        <li>
+                            <a href="{% url 'blogs_with_type' blog_type.pk %}">
+                                {{ blog_type.type_name}}
+                            </a>
+                        </li>
+                    {% empty %}
+                        <<li> IsNull </li>
+                    {% endfor%}
+                </ul> -->
+            </div>
+        </div>
+    </div>   
+{% endblock %}

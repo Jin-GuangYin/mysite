@@ -1,0 +1,29 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}{% endblock %}</title>
+    {% block header_extenders %}{% endblock %}
+    <!-- <link rel="stylesheet" type="text/css" href="/static/base.css"> -->
+    <link rel="stylesheet" type="text/css" href="{% static 'base.css'%}">
+    <link rel="stylesheet" type="text/css" href="{% static 'bootstrap-3.3.7-dist/css/bootstrap.css'%}">
+</head>
+<body>
+    <div class="nav">
+        <a class = "logo" href="{% url 'home' %}">
+            <h3>Personal Blog</h3>
+        </a>
+        <a href="/">HomePage</a>
+        <a href="{% url 'blog_list' %}">blog</a>
+
+    </div>
+    <hr>
+    {% block content %}{% endblock %}
+
+    <script type="text/javascript" src= "{% static 'jquery-1.12.4.min.js'%}"></script>
+    <script type="text/javascript" src= "{% static 'bootstrap-3.3.7-dist/js/bootstrap.js'%}"></script>
+</body>
+</html>

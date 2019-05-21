@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block title %}
+    Welcom To My Website|Error
+{% endblock %}
+
+
+
+{% block nav_home_active %}active{% endblock %}
+
+{% block content %}
+    {{ message }}
+    <a href="{{ redirect_to }}">return</a>
+{% endblock %}
+
